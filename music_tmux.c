@@ -17,11 +17,15 @@
  */
 
 
+#include <ao/ao.h>
 #include <mpg123.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+#define BITS 8
 
 char *fullprogname = NULL; /* Copy of argv[0]. */
 char *prgName = NULL;
@@ -122,6 +126,15 @@ void print_v2(mpg123_id3v2 *v2)
 
 int main(int sys_argc, char ** sys_argv)
 {
+	int driver;
+	ao_device *dev;
+	ao_sample_format format;
+	int channels, encoding;
+	long rate;
+	unsigned char *buffer;
+	size_t buffer_size;
+	size_t done;
+
     if(!(fullprogname = strdup(sys_argv[0])))
     {
         safe_exit(1);
@@ -146,19 +159,26 @@ int main(int sys_argc, char ** sys_argv)
 
     //load config
     load_config(NULL);
+	return 0;
     //读取路径下所有音频文件信息
-    mpg123_handle *m;
+    mpg123_handle *m = NULL;
     mpg123_init();
+	ao_initialize();
+	driver = ao_default_driver_id();
     m = mpg123_new(NULL, NULL);
     mpg123_param(m, MPG123_RESYNC_LIMIT, -1, 0);
 
-	int result = mpg123_open(m,"/Users/OccamsRazor/Documents/Code/C/music_tmux/1.mp3");
-	if(result != MPG123_OK)
-		printf("Cannot open file!\n");
-	struct mpg123_frameinfo *mi = NULL;
-	result = mpg123_info(m, mi);
-	if(result > 0)
-		printf("result %d,File %ld", result, mi->rate);
+	buffer_size = mpg123_outblock(m);
+	buffer = (unsigned char* )malloc(buffer_size * sizeof(unsigned char));
+	mpg123_open(m,"/Users/OccamsRazor/Documents/Code/C/music_tmux/1.mp3");
+	mpg123_getformat(m, &rate, &channels, &encoding);
+
+	format.bits = mpg123_encsize(encoding) * BITS;
+	format.rate = rate;
+	format.channels = channels;
+	format.byte_format = AO_FMT_NATIVE;
+	format.matrix = 0;
+	dev = ao_open_live(driver, &format, NULL);
 
 	mpg123_seek(m, 0, SEEK_SET);
 	int meta = mpg123_meta_check(m);
@@ -171,9 +191,15 @@ int main(int sys_argc, char ** sys_argv)
 			print_v1(v1);
 		}
 	}
+
+	while(mpg123_read(m, buffer, buffer_size, &done) == MPG123_OK)
+		ao_play(dev, buffer, done);
+	free(buffer);
+	ao_close(dev);
 	mpg123_close(m);
 	mpg123_delete(m);
 	mpg123_exit();
+	ao_shutdown();
 	return 0;
 
 }
