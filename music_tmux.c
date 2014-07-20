@@ -40,6 +40,7 @@ void safe_exit(int code)
 void load_config(char *config)
 {
 	FILE *file = NULL;
+	file = fopen("","w+");
 }
 
 
