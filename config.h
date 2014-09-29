@@ -3,14 +3,14 @@
  *
  *       Filename:  config.h
  *
- *    Description:  全局配置
+ *    Description:  
  *
  *        Version:  1.0
- *        Created:  2014/07/22 22时17分06秒
+ *        Created:  2014/07/22
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  YangBing
+ *         Author:  Occam's Razor
  *   Organization:  
  *
  * =====================================================================================
