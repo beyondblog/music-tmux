@@ -1,12 +1,24 @@
-#include "play_list.h"
 #include <ao/ao.h>
 #include <mpg123.h>
+
+#include "play_list.h"
+#include "common.h"
 
 #define BITS 8
 
 
-TAILQ_HEAD(, _music_file) music_queue;
+//TAILQ_HEAD(, _music_file) music_queue;
+static arraylist* music_list;
 static mpg123_handle *mpg_handle = NULL;
+static pthread_t tid;
+static pthread_mutex_t mutex;
+static music_file* current_music;
+/*
+ * 显示当前播放的歌曲
+ */
+static void show_play_music(char *music_name);
+static void *thread_play_file(void *file);
+static int current_done;
 
 /* Helper for v1 printing, get these strings their zero byte. */
 static void safe_print(char* name, char *data, size_t size)
@@ -99,41 +111,93 @@ int init_play_list()
     mpg123_init();
     mpg_handle = mpg123_new(NULL, NULL);
     mpg123_param(mpg_handle, MPG123_RESYNC_LIMIT, -1, 0);
-    TAILQ_INIT(&music_queue);
+    music_list = arraylist_create();
+    pthread_mutex_init(&mutex, NULL);
+    //TAILQ_INIT(&music_queue);
     return 0;
 }
 
 
 int add_music_to_play_list(char *filename, char *path)
 {
-    struct _music_file *file;
-    file = malloc(sizeof(struct _music_file));
+    music_file *file;
+    file = malloc(sizeof(music_file));
     if(file) {
         file->filename = strdup(filename);
         file->path = strdup(path);
     }
-    TAILQ_INSERT_TAIL(&music_queue, file, entries);
+
+    arraylist_add(music_list, file);
     return 0;
 }
 
 
 music_file* get_first_music()
 {
-    /* The tail queue should now be empty. */
-    if (!TAILQ_EMPTY(&music_queue))
-        return TAILQ_FIRST(&music_queue);
+    return (music_file*) arraylist_pop(music_list);
+}
+
+music_file* get_index_music_path(int index)
+{
+    music_file *item = NULL;
+    item = (music_file*) arraylist_get(music_list, index);
+    return item;
+}
+
+/*
+ * show muisc list
+ */
+void print_library_music(int *cursor, int page_size) {
+    int i = 0, index = 0, count = 0, _cursor = 0;
+    for (i = 0 ; i < 5; i++)
+        fprintf(stdout, "\n");
+
+    int size = music_list->size;
+
+
+    if (*cursor >= size)
+        *cursor = size - 1;
+
+    if (*cursor <= 0)
+        *cursor = 0;
+
+    _cursor = *cursor;
+
+    int page = _cursor / page_size; //得到当前的页数
+
+    i = page * page_size;//得到当前页数第一个索引
+
+    arraylist* music_slice = NULL;
+    if (i + page_size < size)
+        music_slice = arraylist_slice(music_list, i, page_size);
     else
-        return NULL;
-}
+        music_slice = arraylist_slice(music_list, i, size - i);
 
-void print_library_music() {
-    struct _music_file *item;
-    TAILQ_FOREACH(item, &music_queue, entries) {
-		printf("%s\n",item->filename);
+    void* item;
+
+    arraylist_iterate(music_slice, index, item) {
+        if ((i + index) == _cursor)
+            fprintf(stdout, "\t\t\t\t->%d.%s\n", i + index , ((music_file*)item)->filename);
+        else
+            fprintf(stdout, "\t\t\t\t  %d.%s\n", i + index , ((music_file*)item)->filename);
     }
+
+    arraylist_destroy(music_slice);
 }
 
-void play_music_file(char *file)
+void play_music_file(music_file *file)
+{
+    current_music = file;
+    char *data = strdup(file->path);
+    current_done = 1;
+    if (pthread_create(&tid, NULL, thread_play_file, (void *)data) != 0) {
+        printf("Create thread error!\n");
+        exit(1);
+    }
+
+}
+
+static void *thread_play_file(void *file)
 {
     int driver;
     ao_device *dev;
@@ -144,12 +208,15 @@ void play_music_file(char *file)
     size_t buffer_size;
     size_t done;
 
-    //mpg123_handle *m = NULL;
+    pthread_detach(pthread_self());
+    pthread_mutex_lock(&mutex);
 
+    current_done = 0;
+    //mpg123_handle *m = NULL;
     driver = ao_default_driver_id();
     buffer_size = mpg123_outblock(mpg_handle);
     buffer = (unsigned char* )malloc(buffer_size * sizeof(unsigned char));
-    mpg123_open(mpg_handle, file);
+    mpg123_open(mpg_handle, (char *)file);
     mpg123_getformat(mpg_handle, &rate, &channels, &encoding);
 
     format.bits = mpg123_encsize(encoding) * BITS;
@@ -159,7 +226,7 @@ void play_music_file(char *file)
     format.matrix = 0;
     dev = ao_open_live(driver, &format, NULL);
     mpg123_seek(mpg_handle, 0, SEEK_SET);
-    int meta = mpg123_meta_check(mpg_handle);
+    /*int meta = mpg123_meta_check(mpg_handle);
     mpg123_id3v1 *v1;
     mpg123_id3v2 *v2;
     if(meta & MPG123_ID3 && mpg123_id3(mpg_handle, &v1, &v2) == MPG123_OK) {
@@ -168,17 +235,23 @@ void play_music_file(char *file)
         } else if(v1 != NULL) {
             print_v1(v1);
         }
-    }
+    }*/
 
-    while(mpg123_read(mpg_handle, buffer, buffer_size, &done) == MPG123_OK)
+    while(mpg123_read(mpg_handle, buffer, buffer_size, &done) == MPG123_OK && current_done == 0) {
         ao_play(dev, (char *)buffer, done);
+    }
     free(buffer);
+    free(file);
+    if (current_done == 0)
+        current_music = NULL;
+    current_done = 1;
     ao_close(dev);
     mpg123_close(mpg_handle);
+    pthread_mutex_unlock(&mutex);
 }
 
 
-static void free_music_file(struct _music_file *item)
+static void free_music_file(music_file *item)
 {
     if(item != NULL) {
         free(item->filename);
@@ -187,15 +260,26 @@ static void free_music_file(struct _music_file *item)
     }
 }
 
+static void show_play_music(char *music_name)
+{
+    fprintf(stdout, "当前播放:%s", music_name);
+}
+
+music_file* get_current_music()
+{
+
+	//mpg123_volume(mpg_handle, 0.5);
+	return current_music;
+}
+
 void free_play_list()
 {
-    struct _music_file *item;
-
-    if (!TAILQ_EMPTY(&music_queue)) {
-        TAILQ_FOREACH(item, &music_queue, entries) {
-            free_music_file(item);
-        }
+    int i;
+    void* item;
+    arraylist_iterate(music_list, i, item) {
+        free_music_file((music_file*) item);
     }
+    arraylist_destroy(music_list);
     mpg123_delete(mpg_handle);
     mpg123_exit();
     ao_shutdown();

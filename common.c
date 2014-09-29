@@ -17,6 +17,8 @@
  */
 #include "common.h"
 
+#define CSI "\e["
+
 int str_ends_with(const char * str, const char * suffix) {
     if(str == NULL || suffix == NULL)
         return 0;
@@ -54,3 +56,62 @@ int getch(void)
     assert(res == 0);
     return c;
 }
+
+int hide_cursor(void)
+{
+    fputs(CSI "?25l", stdout);
+    return 0;
+}
+
+int show_cursor(void)
+{
+    fputs(CSI "?25h", stdout);
+    return 0;
+}
+
+
+/*
+void printf_red(char *str)
+{
+	fprintf(stdout,KRED "%s" RESET, str);
+}
+
+void printf_blue(char *str)
+{
+	fprintf(stdout,KBLU "%s" RESET, str);
+}
+
+*/
+
+void textcolor(char *text, char* color) {
+    fprintf(stdout, "%s%s" COLOR_RESET, color, text);
+}
+
+void backgroud_color(char* color) {
+    fprintf(stdout, "%s", color);
+}
+
+void color_reset() {
+    fprintf(stdout, "%s", COLOR_RESET);
+}
+
+
+void set_cursor_point(int x, int y) {
+    fprintf(stdout, "\033[%d;%dH",  y, x);
+}
+
+void save_cursor() {
+    fprintf(stdout, CURSOR_SAVE);
+}
+
+void load_cursor() {
+    fprintf(stdout, CURSOR_LOAD);
+}
+
+
+
+
+
+
+
+

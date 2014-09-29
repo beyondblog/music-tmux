@@ -10,4 +10,10 @@ struct paramter
 };
 
 
+struct play_item
+{
+	char *music_name; //音乐文件名
+};
+
+
 #endif

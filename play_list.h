@@ -20,16 +20,16 @@
 #define PLAY_LIST_H
 
 
-#include <sys/queue.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+#include "arraylist.h"
 
 struct _music_file
 {
     char *filename;
     char *path;
-    TAILQ_ENTRY(_music_file) entries;
 };
 
 typedef struct _music_file music_file;
@@ -41,12 +41,14 @@ int add_music_to_play_list(char *filename, char *path);
 
 music_file* get_first_music();
 
-void print_library_music();
+void print_library_music(int *cursor, int page_size);
 
 void free_play_list();
 
-void play_music_file(char *file);
+void play_music_file(music_file *file);
 
+music_file* get_index_music_path(int index);
 
+music_file* get_current_music();
 
 #endif
