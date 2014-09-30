@@ -9,15 +9,15 @@ Music player in terminal
 For linux or MacOS
 
 ```
-yum install libmpg123 ao libconfig
+yum install libmpg libao libconfig
 
 or
 
-apt-get install libmpg123 ao libconfig
+apt-get install libmpg libao libconfig
 
 MacOS 
 
-brew install libmpg123 ao libconfig
+brew install mpg libao libconfig
 
 make
 

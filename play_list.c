@@ -154,6 +154,10 @@ void print_library_music(int *cursor, int page_size) {
 
     int size = music_list->size;
 
+    if(size == 0) {
+        fprintf(stdout, "没有发现歌曲\n");
+        return;
+    }
 
     if (*cursor >= size)
         *cursor = size - 1;
