@@ -45,6 +45,8 @@ static char *baseMenu[] = {
 
 static void show_music_list();
 
+static void show_setting_menu();
+
 static void sig_quit(int signo)
 {
     fprintf(stdout, "sigquit:%d", signo);
@@ -60,7 +62,7 @@ void init_menu()
     menu_type = MAIN_MENU;
     if (ioctl(0, TIOCGWINSZ, &window_size) != 0) {
         fprintf(stderr, "TIOCGWINSZ:%s/n", strerror(errno));
-        exit(1);
+        //exit(1);
     }
 }
 
@@ -69,7 +71,6 @@ int show_menu(char key)
     int i, size;
     int row = window_size.ws_row;
     int col = window_size.ws_col;
-
 
     size = sizeof(baseMenu) / sizeof(baseMenu[0]);
     cls();
@@ -91,15 +92,31 @@ int show_menu(char key)
     }
     case 'l':
     {
-        if(menu_type == MAIN_MENU && cursor == 0)
+        switch(menu_type)
         {
-            show_music_list();
-            menu_type = MUSIC_LIST;
-        } else if( menu_type == MUSIC_LIST) {
+        case  MAIN_MENU: {
+            if(cursor == 0) {
+                show_music_list();
+                menu_type = MUSIC_LIST;
+            } else if (cursor == 2) {
+                show_setting_menu();
+                menu_type = SETTING;
+            }
+            break;
+        }
+        case MUSIC_LIST:
+        {
             music_file* music = get_index_music_path(cursor);
             if(music != NULL) {
                 play_music_file(music);
             }
+            break;
+        }
+        case SETTING:
+        {
+        }
+        default:
+            break;
         }
         break;
     }
@@ -170,6 +187,12 @@ int show_menu(char key)
 void add_menu_item(char *menu_name)
 {
 
+}
+
+static void show_setting_menu()
+{
+    cls();
+	printf("音乐库设置");
 }
 
 static void show_music_list()

@@ -6,11 +6,11 @@
  *    Description:  终端音乐播放器
  *
  *        Version:  1.0
- *        Created:  2014/07/19 16时12分41秒
+ *        Created:  2014/07/19
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  YangBing
+ *         Author:  Occam's Razor
  *   Organization:
  *
  * =====================================================================================
@@ -28,6 +28,8 @@
 #include <dirent.h>
 #include <libconfig.h>
 #include <signal.h>
+#include <sys/param.h>
+#include <unistd.h>
 
 #include "config.h"
 #include "common.h"
@@ -42,10 +44,34 @@ static char *prgName = NULL;
 static char *binpath; /* Path to myself. */
 static char *music_library = NULL;
 
+void init_daemon(void) {
+    return;
+    int pid , i;
+
+    if((pid = fork()))
+        exit(0); //结束当前进程
+    else if( pid < 0)
+        exit(1);
+
+    setsid();
+
+    if((pid = fork()))
+        exit(0); //结束终端控制
+    else if(pid < 0)
+        exit(1);
+
+    for(i = 0; i < NOFILE; i++)
+        ;//close(i);
+
+    umask(0);
+}
+
+void exit_callback(void) {
+    show_cursor();
+}
 
 void safe_exit(int code)
 {
-	show_cursor();
     if(fullprogname) free(fullprogname);
     free(music_library);
     free_play_list();
@@ -60,6 +86,8 @@ static int load_library_music(char *library) {
     struct dirent *dir = NULL;
     struct stat st;
     char filename[1024] = {0};
+    if(library == NULL)
+        return 0;
     d = opendir(library);
     if(d) {
         while((dir = readdir(d)) != NULL)
@@ -89,13 +117,16 @@ static void load_config(char *config)
     int rt = 0;
     config_t* conf = &(config_t) {};
     config_init(conf);
-    config_read_file(conf, config);
-
-    char *library = NULL, *version = NULL;
-    rt = config_lookup_string(conf, "version", &version);
-    rt = config_lookup_string(conf, "library", &library);
-    music_library = strdup(library);
-    config_destroy(conf);
+    if(config_read_file(conf, config) == CONFIG_FALSE)
+    {
+        music_library = NULL;
+    } else {
+        char *library = NULL, *version = NULL;
+        rt = config_lookup_string(conf, "version", &version);
+        rt = config_lookup_string(conf, "library", &library);
+        music_library = strdup(library);
+        config_destroy(conf);
+    }
 }
 
 
@@ -121,6 +152,9 @@ int main(int sys_argc, char ** sys_argv)
         binpath = NULL; /* No path at all. */
     }
 
+    init_daemon();
+    atexit(exit_callback);
+
     //fprintf(stdout, "%s\n", binpath);
     //load config
     init_play_list();
@@ -128,7 +162,6 @@ int main(int sys_argc, char ** sys_argv)
     load_library_music(music_library);
     init_menu();
     char key;
-
     show_menu(NULL);
     while((key = getch())) {
         if(show_menu(key) == 1)
