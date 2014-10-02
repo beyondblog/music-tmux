@@ -121,10 +121,40 @@ static void load_config(char *config)
     {
         music_library = NULL;
     } else {
-        char *library = NULL, *version = NULL;
+        char *library = NULL, *version = NULL, *key = NULL;
+        int key_up, key_down, key_left, key_right;
         rt = config_lookup_string(conf, "version", &version);
-        rt = config_lookup_string(conf, "library", &library);
-        music_library = strdup(library);
+        config_setting_t* array = config_setting_get_member(conf->root, "library");
+        int count = config_setting_length(array);
+        if(count > 0) {
+            library = config_setting_get_string_elem(array, 0);
+            music_library = strdup(library);
+            //加载上下左右
+            if(!config_lookup_string(conf, "UP", &key))
+                key_up = 'k';
+            else
+                key_up = key[0];
+
+            if(!config_lookup_string(conf, "DOWN", &key))
+                key_down = 'j';
+            else
+                key_down = key[0];
+
+            if(!config_lookup_string(conf, "LEFT", &key))
+                key_left = 'h';
+            else
+                key_left = key[0];
+
+            if(!config_lookup_string(conf, "RIGHT", &key))
+                key_right = 'l';
+            else
+                key_right = key[0];
+
+			init_handle_key(key_up,key_down,key_left,key_right);
+
+        } else {
+            music_library = NULL;
+        }
         config_destroy(conf);
     }
 }

@@ -3,6 +3,7 @@
 
 #include "play_list.h"
 #include "common.h"
+#include "menu.h"
 
 #define BITS 8
 
@@ -140,6 +141,8 @@ music_file* get_first_music()
 music_file* get_index_music_path(int index)
 {
     music_file *item = NULL;
+    if(music_list->size == 0)
+        return NULL;
     item = (music_file*) arraylist_get(music_list, index);
     return item;
 }
@@ -155,7 +158,7 @@ void print_library_music(int *cursor, int page_size) {
     int size = music_list->size;
 
     if(size == 0) {
-        fprintf(stdout, "没有发现歌曲\n");
+		print_center_string("提示:当前路径下, 没有发现歌曲 :)\n");
         return;
     }
 
@@ -272,8 +275,8 @@ static void show_play_music(char *music_name)
 music_file* get_current_music()
 {
 
-	//mpg123_volume(mpg_handle, 0.5);
-	return current_music;
+    //mpg123_volume(mpg_handle, 0.5);
+    return current_music;
 }
 
 void free_play_list()

@@ -22,7 +22,7 @@ music_tmux: $(OBJECTS)
 
 clean:
 	rm -f music_tmux $(OBJECTS)
-	rm -rf *.orig
+	rm -rf *.orig *.swp
 
 install:
 	install -m 755 music_tmux $(PREFIX)/bin/music_tmux

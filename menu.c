@@ -24,6 +24,12 @@
 #define TEL_WILL "\373"
 #define TEL_ECHO "\001"
 
+#define KEYUP    0
+#define KEYDOWN  1
+#define KEYLEFT  2
+#define KEYRIGHT 3
+#define KEYQUIT  4
+
 #define MUSIC_LIST_COUNT 10
 
 enum MENU_TYPE {
@@ -35,17 +41,19 @@ enum MENU_TYPE {
 
 struct winsize window_size;
 static enum MENU_TYPE menu_type;
-static int cursor;
-static char *baseMenu[] = {
+static int cursor, key_up, key_down, key_right, key_left;
+static char *base_menu[] = {
     "列表",
     "设置",
     "帮助",
-    "关于"
 };
+
 
 static void show_music_list();
 
 static void show_setting_menu();
+
+static void show_help_info();
 
 static void sig_quit(int signo)
 {
@@ -66,42 +74,69 @@ void init_menu()
     }
 }
 
-int show_menu(char key)
+/*
+ * 设置操作按键
+ */
+void init_handle_key(int up, int down, int left, int right)
+{
+    key_up = up;
+    key_down = down;
+    key_left = left;
+    key_right = right;
+}
+
+int show_menu(char userKey)
 {
     int i, size;
     int row = window_size.ws_row;
     int col = window_size.ws_col;
+    int key = -1;
 
-    size = sizeof(baseMenu) / sizeof(baseMenu[0]);
+    //if(userKey > 'A' && userKey <= 'Z') userKey += 32;
+
+    if(userKey == key_up)
+        key = KEYUP;
+    else if(userKey == key_down)
+        key = KEYDOWN;
+    else if(userKey == key_left)
+        key = KEYLEFT;
+    else if(userKey == key_right)
+        key = KEYRIGHT;
+    else if(userKey == 'q')
+        key = KEYQUIT;
+
+    size = sizeof(base_menu) / sizeof(base_menu[0]);
     cls();
 
 
     for (i = 0 ; i < (row / 2) - 10; i++)
         fprintf(stdout, "\n");
 
-    if(key > 'A' && key <= 'Z') key += 32;
-
     switch(key) {
-    case 'k': {
+
+    case KEYUP: {
         cursor--;
         break;
     }
-    case 'j': {
+    case KEYDOWN: {
         cursor++;
         break;
     }
-    case 'l':
+    case KEYRIGHT:
     {
         switch(menu_type)
         {
         case  MAIN_MENU: {
+
+            /*
             if(cursor == 0) {
-                show_music_list();
                 menu_type = MUSIC_LIST;
-            } else if (cursor == 2) {
-                show_setting_menu();
+            } else if (cursor == 1) {
                 menu_type = SETTING;
             }
+            */
+
+            menu_type = cursor + 1;
             break;
         }
         case MUSIC_LIST:
@@ -120,13 +155,12 @@ int show_menu(char key)
         }
         break;
     }
-    case 'h': {
-        if(menu_type > 0)
-            menu_type --;
+    case KEYLEFT: {
+        menu_type = MAIN_MENU;
         cursor = 0;
         break;
     }
-    case 'q': {
+    case KEYQUIT: {
         return 1;
         break;
     }
@@ -144,14 +178,14 @@ int show_menu(char key)
         char menu_item[1024];
         for(i = 0 ; i < size; i++) {
             if(i == cursor) {
-                snprintf(menu_item, sizeof(menu_item), "->%d.%s\n", i + 1, baseMenu[i]);
+                snprintf(menu_item, sizeof(menu_item), "->%d.%s\n", i + 1, base_menu[i]);
                 set_cursor_point(col / 2 - 6, (row / 3) + i);
                 textcolor(menu_item, TEXT_DARKGREEN);
             }
             else {
-                snprintf(menu_item, sizeof(menu_item), "  %d.%s\n", i + 1, baseMenu[i]);
+                snprintf(menu_item, sizeof(menu_item), "  %d.%s\n", i + 1, base_menu[i]);
                 set_cursor_point(col / 2 - 6, (row / 3) + i);
-                fprintf(stdout, menu_item);
+                fprintf(stdout, "%s", menu_item);
             }
         }
 
@@ -163,6 +197,16 @@ int show_menu(char key)
         show_music_list();
         break;
     }
+    case  SETTING: {
+        show_setting_menu();
+        break;
+    }
+    case HELP: {
+        show_help_info();
+        break;
+    }
+    default:
+        break;
     }
 
     music_file* music = get_current_music();
@@ -189,16 +233,49 @@ void add_menu_item(char *menu_name)
 
 }
 
+void print_center_string(char *str)
+{
+    int row = window_size.ws_row;
+    int col = window_size.ws_col;
+    set_cursor_point(col / 2 - (strlen(str) / 2), row / 2);
+    fprintf(stdout, "%s", str);
+}
+
 static void show_setting_menu()
 {
     cls();
-	printf("音乐库设置");
+    print_center_string("音乐库设置");
 }
 
 static void show_music_list()
 {
     cls();
     print_library_music(&cursor, MUSIC_LIST_COUNT);
+}
+
+static void show_help_info()
+{
+    cls();
+    int row = window_size.ws_row;
+    int col = window_size.ws_col;
+    int i = 0;
+
+    char help_array[][50] = {
+        "终端音乐播放器: v1.0",
+        "Author: Yang Bing",
+        "Email: beyondblog@outlook.com",
+        "github: https://github.com/beyondblog",
+        "blog: https://beyondblog.github.io",
+        "source: https://github.com/beyondblog/music-tmux",
+    };
+
+    int len = dim(help_array);
+
+    for( i = 0 ; i < len; i++) {
+        set_cursor_point(col / 2 - 20, row / 2 - 10 + i);
+        fprintf(stdout, "%s\n", help_array[i]);
+    }
+
 }
 
 

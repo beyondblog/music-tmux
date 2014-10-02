@@ -35,6 +35,8 @@
 #define BACKGRPUND_WHITE        "\033[47m"
 
 
+#define dim(arr) (sizeof(arr)/sizeof(arr[0]))
+
 
 int str_ends_with(const char * str, const char * suffix);
 

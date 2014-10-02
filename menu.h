@@ -9,8 +9,15 @@
 
 void init_menu();
 
-int show_menu(char key);
+void init_handle_key(int up, int down, int left, int right);
+
+int show_menu(char userKey);
 
 void add_menu_item(char *menu_name);
+
+/*
+ * 居中显示字符串
+ */
+void print_center_string(char *str);
 
 #endif
