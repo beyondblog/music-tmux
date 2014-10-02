@@ -188,9 +188,6 @@ int show_menu(char userKey)
                 fprintf(stdout, "%s", menu_item);
             }
         }
-
-        set_cursor_point(col - 20, (row / 3) + 10);
-        fprintf(stdout, "退出请按'q'");
         break;
     }
     case MUSIC_LIST: {
@@ -221,8 +218,9 @@ int show_menu(char userKey)
         snprintf(current_info, sizeof(current_info), "当前播放:%s", music->filename);
         set_cursor_point(col / 2 - (strlen(current_info) / 2), row);
         textcolor(current_info, TEXT_WHITE);
-        fprintf(stdout, "\033[1;0H");
-        fprintf(stdout, "\033[0m");
+        fprintf(stdout, "\033[1;0H");//设置到开始
+        fprintf(stdout, "\033[0m");//reset
+
     }
 
     return 0;
@@ -243,8 +241,36 @@ void print_center_string(char *str)
 
 static void show_setting_menu()
 {
-    cls();
-    print_center_string("音乐库设置");
+    int row = window_size.ws_row;
+    int col = window_size.ws_col;
+    int i = 0;
+
+    char help_array[][50] = {
+        "系统设置",
+        "1.重新扫描歌曲",
+        "2.歌曲路径设置",
+    };
+
+    int len = dim(help_array);
+
+    for( i = 0 ; i < len; i++) {
+        set_cursor_point(col / 2 - 20, row / 2 - 10 + i);
+        fprintf(stdout, "%s\n", help_array[i]);
+    }
+
+	//绿色填充最后一行
+    set_cursor_point(0, row);
+    backgroud_color(BACKGRPUND_BLUE);
+    for(int i = 0; i < col / 2; i++)
+        printf("  ");
+
+    char current_info[1024];
+    snprintf(current_info, sizeof(current_info), "请输入1-2,进行操作");
+    set_cursor_point(col / 2 - (strlen(current_info) / 2), row);
+    textcolor(current_info, TEXT_WHITE);
+    fprintf(stdout, "\033[0m");//reset
+
+
 }
 
 static void show_music_list()
@@ -276,6 +302,17 @@ static void show_help_info()
         fprintf(stdout, "%s\n", help_array[i]);
     }
 
+    //绿色填充最后一行
+    set_cursor_point(0, row);
+    backgroud_color(BACKGRPUND_BLUE);
+    for(int i = 0; i < col / 2; i++)
+        printf("  ");
+
+    char current_info[1024];
+    snprintf(current_info, sizeof(current_info), "退出请按:q  音量增大:[  音量减小:]  下一首:n  上一首:p");
+    set_cursor_point(col / 2 - (strlen(current_info) / 2), row);
+    textcolor(current_info, TEXT_WHITE);
+    fprintf(stdout, "\033[0m");//reset
 }
 
 
