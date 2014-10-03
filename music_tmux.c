@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/queue.h>
+#include <sys/types.h>
+#include <pwd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
@@ -113,12 +115,43 @@ static int load_library_music(char *library) {
  */
 static void load_config(char *config)
 {
-
     int rt = 0;
     config_t* conf = &(config_t) {};
-    config_init(conf);
-    if(config_read_file(conf, config) == CONFIG_FALSE)
+	char filepath[1204];
+	struct passwd *pw = getpwuid(getuid());
+	snprintf(filepath, sizeof(filepath), "%s/%s", pw->pw_dir, config);
+	config_init(conf);
+
+    if(access(filepath, 0) == -1) {
+        //file not exist
+        config_setting_t* root = config_root_setting(conf);
+        config_setting_t* version = config_setting_add(root, "version", CONFIG_TYPE_STRING);
+        config_setting_set_string(version, VERSION);
+
+        config_setting_t* key_up = config_setting_add(root, "UP", CONFIG_TYPE_STRING);
+        config_setting_set_string(key_up, "k");
+
+        config_setting_t* key_down = config_setting_add(root, "DOWN", CONFIG_TYPE_STRING);
+        config_setting_set_string(key_down, "j");
+
+        config_setting_t* key_left = config_setting_add(root, "LEFT", CONFIG_TYPE_STRING);
+        config_setting_set_string(key_left, "h");
+
+        config_setting_t* key_right = config_setting_add(root, "RIGHT", CONFIG_TYPE_STRING);
+        config_setting_set_string(key_right, "l");
+
+        config_setting_t* library = config_setting_add(root, "library", CONFIG_TYPE_ARRAY);
+        library = config_setting_add(library, NULL, CONFIG_TYPE_STRING);
+
+        config_setting_set_string(library, "~/Music");
+		config_write_file(conf, filepath);
+        config_destroy(conf);
+        return;
+    }
+
+    if(config_read_file(conf, filepath) == CONFIG_FALSE)
     {
+        //配置文件加载失败
         music_library = NULL;
     } else {
         char *library = NULL, *version = NULL, *key = NULL;
@@ -150,7 +183,7 @@ static void load_config(char *config)
             else
                 key_right = key[0];
 
-			init_handle_key(key_up,key_down,key_left,key_right);
+            init_handle_key(key_up, key_down, key_left, key_right);
 
         } else {
             music_library = NULL;

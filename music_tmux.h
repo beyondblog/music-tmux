@@ -2,6 +2,7 @@
 #define MUSIC_TMUX_H
 
 
+#define VERSION "1.0"
 
 struct paramter
 {

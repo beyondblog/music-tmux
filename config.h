@@ -19,6 +19,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define CONFIG_FILE "music_tmux.conf"
+#define CONFIG_FILE ".music_tmux.conf"
 
 #endif

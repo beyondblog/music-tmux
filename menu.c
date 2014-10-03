@@ -209,7 +209,6 @@ int show_menu(char userKey)
     music_file* music = get_current_music();
 
     if (music != NULL) {
-
         set_cursor_point(0, row);
         backgroud_color(BACKGRPUND_GREEN);
         for(int i = 0; i < col / 2; i++)
@@ -220,7 +219,6 @@ int show_menu(char userKey)
         textcolor(current_info, TEXT_WHITE);
         fprintf(stdout, "\033[1;0H");//设置到开始
         fprintf(stdout, "\033[0m");//reset
-
     }
 
     return 0;
