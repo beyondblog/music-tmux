@@ -162,11 +162,10 @@ void print_library_music(int *cursor, int page_size) {
         return;
     }
 
-    if (*cursor >= size)
+	if(*cursor >= size)
+		*cursor = 0;
+	else if(*cursor < 0)
         *cursor = size - 1;
-
-    if (*cursor <= 0)
-        *cursor = 0;
 
     _cursor = *cursor;
 

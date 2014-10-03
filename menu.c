@@ -18,6 +18,7 @@
 
 #include <signal.h>
 #include <errno.h>
+
 #include "menu.h"
 
 #define TEL_IAC "\377"
@@ -127,16 +128,8 @@ int show_menu(char userKey)
         switch(menu_type)
         {
         case  MAIN_MENU: {
-
-            /*
-            if(cursor == 0) {
-                menu_type = MUSIC_LIST;
-            } else if (cursor == 1) {
-                menu_type = SETTING;
-            }
-            */
-
             menu_type = cursor + 1;
+			cursor = 0;
             break;
         }
         case MUSIC_LIST:
@@ -149,6 +142,9 @@ int show_menu(char userKey)
         }
         case SETTING:
         {
+            if(cursor == 1) {
+				system("vi ~/.vimrc");
+            }
         }
         default:
             break;
@@ -242,21 +238,36 @@ static void show_setting_menu()
     int row = window_size.ws_row;
     int col = window_size.ws_col;
     int i = 0;
-
     char help_array[][50] = {
-        "系统设置",
-        "1.重新扫描歌曲",
-        "2.歌曲路径设置",
+        "重新扫描歌曲",
+        "歌曲路径设置",
     };
-
+    char setting_item[50];
     int len = dim(help_array);
+    int size = sizeof(help_array) / sizeof(help_array[0]);
+
+    if(cursor >= size)
+        cursor = 0;
+    else if(cursor < 0)
+        cursor = size - 1;
+
+    set_cursor_point(col / 2 - 18, row / 2 - 11);
+    fprintf(stdout, "系统设置\n");
 
     for( i = 0 ; i < len; i++) {
         set_cursor_point(col / 2 - 20, row / 2 - 10 + i);
-        fprintf(stdout, "%s\n", help_array[i]);
+        if(i == cursor) {
+            snprintf(setting_item, sizeof(setting_item), "->%d.%s\n", i + 1, help_array[i]);
+            fprintf(stdout, "%s", setting_item);
+        }
+        else
+        {
+            snprintf(setting_item, sizeof(setting_item), "  %d.%s\n", i + 1, help_array[i]);
+            fprintf(stdout, "%s", setting_item);
+        }
     }
 
-	//绿色填充最后一行
+    //绿色填充最后一行
     set_cursor_point(0, row);
     backgroud_color(BACKGRPUND_BLUE);
     for(int i = 0; i < col / 2; i++)
