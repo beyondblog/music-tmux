@@ -16,10 +16,8 @@
  * =====================================================================================
  */
 
-#include <signal.h>
-#include <errno.h>
-
 #include "menu.h"
+#include "config.h"
 
 #define TEL_IAC "\377"
 #define TEL_WILL "\373"
@@ -129,7 +127,7 @@ int show_menu(char userKey)
         {
         case  MAIN_MENU: {
             menu_type = cursor + 1;
-			cursor = 0;
+            cursor = 0;
             break;
         }
         case MUSIC_LIST:
@@ -143,7 +141,11 @@ int show_menu(char userKey)
         case SETTING:
         {
             if(cursor == 1) {
-				system("vi ~/.vimrc");
+                struct passwd *pw = getpwuid(getuid());
+                char shell[2048];
+                snprintf(shell, sizeof(shell), "vi %s/%s", pw->pw_dir, CONFIG_FILE);
+                system(shell);
+				hide_cursor();
             }
         }
         default:

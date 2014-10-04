@@ -117,10 +117,10 @@ static void load_config(char *config)
 {
     int rt = 0;
     config_t* conf = &(config_t) {};
-	char filepath[1204];
-	struct passwd *pw = getpwuid(getuid());
-	snprintf(filepath, sizeof(filepath), "%s/%s", pw->pw_dir, config);
-	config_init(conf);
+    char filepath[1204];
+    struct passwd *pw = getpwuid(getuid());
+    snprintf(filepath, sizeof(filepath), "%s/%s", pw->pw_dir, config);
+    config_init(conf);
 
     if(access(filepath, 0) == -1) {
         //file not exist
@@ -144,16 +144,13 @@ static void load_config(char *config)
         library = config_setting_add(library, NULL, CONFIG_TYPE_STRING);
 
         config_setting_set_string(library, "~/Music");
-		config_write_file(conf, filepath);
+        config_write_file(conf, filepath);
         config_destroy(conf);
         return;
     }
-
-    if(config_read_file(conf, filepath) == CONFIG_FALSE)
+    music_library = NULL;
+    if(!config_read_file(conf, filepath) == CONFIG_FALSE)
     {
-        //配置文件加载失败
-        music_library = NULL;
-    } else {
         char *library = NULL, *version = NULL, *key = NULL;
         int key_up, key_down, key_left, key_right;
         rt = config_lookup_string(conf, "version", &version);
@@ -161,33 +158,39 @@ static void load_config(char *config)
         int count = config_setting_length(array);
         if(count > 0) {
             library = config_setting_get_string_elem(array, 0);
-            music_library = strdup(library);
-            //加载上下左右
-            if(!config_lookup_string(conf, "UP", &key))
-                key_up = 'k';
-            else
-                key_up = key[0];
-
-            if(!config_lookup_string(conf, "DOWN", &key))
-                key_down = 'j';
-            else
-                key_down = key[0];
-
-            if(!config_lookup_string(conf, "LEFT", &key))
-                key_left = 'h';
-            else
-                key_left = key[0];
-
-            if(!config_lookup_string(conf, "RIGHT", &key))
-                key_right = 'l';
-            else
-                key_right = key[0];
-
-            init_handle_key(key_up, key_down, key_left, key_right);
-
-        } else {
-            music_library = NULL;
+            if(library != NULL && library[0] == '~' && strlen(library) > 0)
+            {
+                //解析用户路径
+                int len = sizeof(char) * (strlen(pw->pw_dir) + strlen(library));
+                music_library = (char *) malloc(len);
+                snprintf(music_library, len, "%s%s", pw->pw_dir, &library[1]);
+            } else {
+                music_library = strdup(library);
+            }
         }
+
+        //加载上下左右
+        if(!config_lookup_string(conf, "UP", &key))
+            key_up = 'k';
+        else
+            key_up = key[0];
+
+        if(!config_lookup_string(conf, "DOWN", &key))
+            key_down = 'j';
+        else
+            key_down = key[0];
+
+        if(!config_lookup_string(conf, "LEFT", &key))
+            key_left = 'h';
+        else
+            key_left = key[0];
+
+        if(!config_lookup_string(conf, "RIGHT", &key))
+            key_right = 'l';
+        else
+            key_right = key[0];
+
+        init_handle_key(key_up, key_down, key_left, key_right);
         config_destroy(conf);
     }
 }

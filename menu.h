@@ -1,8 +1,12 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include<stdio.h>
+#include <stdio.h>
+#include <signal.h>
+#include <errno.h>
+#include <unistd.h>
 #include <sys/ioctl.h> 
+#include <pwd.h>
 
 #include "common.h"
 #include "play_list.h"
