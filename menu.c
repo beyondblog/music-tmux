@@ -6,11 +6,11 @@
  *    Description:  菜单
  *
  *        Version:  1.0
- *        Created:  2014/07/24 21时20分14秒
+ *        Created:  2014/07/24
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  YangBing
+ *         Author:  Occam's Razor
  *   Organization:
  *
  * =====================================================================================
@@ -18,16 +18,11 @@
 
 #include "menu.h"
 #include "config.h"
+#include "music_tmux.h"
 
 #define TEL_IAC "\377"
 #define TEL_WILL "\373"
 #define TEL_ECHO "\001"
-
-#define KEYUP    0
-#define KEYDOWN  1
-#define KEYLEFT  2
-#define KEYRIGHT 3
-#define KEYQUIT  4
 
 #define MUSIC_LIST_COUNT 10
 
@@ -145,7 +140,11 @@ int show_menu(char userKey)
                 char shell[2048];
                 snprintf(shell, sizeof(shell), "vi %s/%s", pw->pw_dir, CONFIG_FILE);
                 system(shell);
-				hide_cursor();
+                hide_cursor();
+            } else if (cursor == 0) {
+                //reload library
+                reload_library();
+				print_center_string("音乐库已经重新加载!");
             }
         }
         default:
@@ -253,14 +252,14 @@ static void show_setting_menu()
     else if(cursor < 0)
         cursor = size - 1;
 
-    set_cursor_point(col / 2 - 18, row / 2 - 11);
+    set_cursor_point(col / 2 - 13, row / 2 - 10);
     fprintf(stdout, "系统设置\n");
 
     for( i = 0 ; i < len; i++) {
-        set_cursor_point(col / 2 - 20, row / 2 - 10 + i);
+        set_cursor_point(col / 2 - 15, row / 2 - 9 + i);
         if(i == cursor) {
             snprintf(setting_item, sizeof(setting_item), "->%d.%s\n", i + 1, help_array[i]);
-            fprintf(stdout, "%s", setting_item);
+            textcolor(setting_item, TEXT_DARKGREEN);
         }
         else
         {
@@ -281,13 +280,12 @@ static void show_setting_menu()
     textcolor(current_info, TEXT_WHITE);
     fprintf(stdout, "\033[0m");//reset
 
-
 }
 
 static void show_music_list()
 {
     cls();
-    print_library_music(&cursor, MUSIC_LIST_COUNT);
+    print_library_music(&cursor, MUSIC_LIST_COUNT, window_size.ws_col, window_size.ws_row);
 }
 
 static void show_help_info()

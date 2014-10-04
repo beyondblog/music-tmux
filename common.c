@@ -6,11 +6,11 @@
  *    Description:
  *
  *        Version:  1.0
- *        Created:  2014/07/23 22时04分45秒
+ *        Created:  2014/07/23
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  YangBing (),
+ *         Author:  Occam's Razor
  *   Organization:
  *
  * =====================================================================================

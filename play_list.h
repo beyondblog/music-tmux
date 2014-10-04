@@ -3,7 +3,7 @@
  *
  *       Filename:  play_list.h
  *
- *    Description:  
+ *    Description:
  *
  *        Version:  1.0
  *        Created:  2014/07/24 12时24分59秒
@@ -11,7 +11,7 @@
  *       Compiler:  gcc
  *
  *         Author:  YangBing
- *   Organization:  
+ *   Organization:
  *
  * =====================================================================================
  */
@@ -37,11 +37,13 @@ typedef struct _music_file music_file;
 
 int init_play_list();
 
+int load_library_music(char *library);
+
 int add_music_to_play_list(char *filename, char *path);
 
 music_file* get_first_music();
 
-void print_library_music(int *cursor, int page_size);
+void print_library_music(int *cursor, int page_size, int columns, int rows);
 
 void free_play_list();
 

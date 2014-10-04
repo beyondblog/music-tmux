@@ -16,5 +16,6 @@ struct play_item
 	char *music_name; //音乐文件名
 };
 
+void reload_library();
 
 #endif

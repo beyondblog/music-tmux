@@ -80,35 +80,40 @@ void safe_exit(int code)
     exit(code);
 }
 
-/*
- * 加载本地库里面的所有音乐
- */
-static int load_library_music(char *library) {
-    DIR *d = NULL;
-    struct dirent *dir = NULL;
-    struct stat st;
-    char filename[1024] = {0};
-    if(library == NULL)
-        return 0;
-    d = opendir(library);
-    if(d) {
-        while((dir = readdir(d)) != NULL)
-        {
-            if(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)
-                continue;
-            //判断是否是文件夹
-            snprintf(filename, sizeof(filename), "%s/%s", library, dir->d_name);
-            stat(filename, &st);
-            if(S_ISDIR(st.st_mode)) {
-                load_library_music(filename);
-            } else if(str_ends_with(dir->d_name, "mp3") > 0 || str_ends_with(dir->d_name, "flac") > 0) {
-                add_music_to_play_list(dir->d_name, filename);
-            }
-        }
-        closedir(d);
-    }
-    return 0;
+void reload_library() {
+
+    load_library_music(music_library);
 }
+
+///*
+// * 加载本地库里面的所有音乐
+// */
+//static int load_library_music(char *library) {
+//    DIR *d = NULL;
+//    struct dirent *dir = NULL;
+//    struct stat st;
+//    char filename[1024] = {0};
+//    if(library == NULL)
+//        return 0;
+//    d = opendir(library);
+//    if(d) {
+//        while((dir = readdir(d)) != NULL)
+//        {
+//            if(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)
+//                continue;
+//            //判断是否是文件夹
+//            snprintf(filename, sizeof(filename), "%s/%s", library, dir->d_name);
+//            stat(filename, &st);
+//            if(S_ISDIR(st.st_mode)) {
+//                load_library_music(filename);
+//            } else if(str_ends_with(dir->d_name, "mp3") > 0 || str_ends_with(dir->d_name, "flac") > 0) {
+//                add_music_to_play_list(dir->d_name, filename);
+//            }
+//        }
+//        closedir(d);
+//    }
+//    return 0;
+//}
 
 /*
  * 加载配置

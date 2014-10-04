@@ -1,5 +1,7 @@
 #include <ao/ao.h>
 #include <mpg123.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 #include "play_list.h"
 #include "common.h"
@@ -119,6 +121,37 @@ int init_play_list()
 }
 
 
+/*
+ * 加载本地库里面的所有音乐
+ */
+int load_library_music(char *library) {
+    DIR *d = NULL;
+    struct dirent *dir = NULL;
+    struct stat st;
+    char filename[1024] = {0};
+    if(library == NULL)
+        return 0;
+    arraylist_clear(music_list);
+    d = opendir(library);
+    if(d) {
+        while((dir = readdir(d)) != NULL)
+        {
+            if(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)
+                continue;
+            //判断是否是文件夹
+            snprintf(filename, sizeof(filename), "%s/%s", library, dir->d_name);
+            stat(filename, &st);
+            if(S_ISDIR(st.st_mode)) {
+                load_library_music(filename);
+            } else if(str_ends_with(dir->d_name, "mp3") > 0 || str_ends_with(dir->d_name, "flac") > 0) {
+                add_music_to_play_list(dir->d_name, filename);
+            }
+        }
+        closedir(d);
+    }
+    return 0;
+}
+
 int add_music_to_play_list(char *filename, char *path)
 {
     music_file *file;
@@ -150,7 +183,7 @@ music_file* get_index_music_path(int index)
 /*
  * show muisc list
  */
-void print_library_music(int *cursor, int page_size) {
+void print_library_music(int *cursor, int page_size, int columns, int rows) {
     int i = 0, index = 0, count = 0, _cursor = 0;
     for (i = 0 ; i < 5; i++)
         fprintf(stdout, "\n");
@@ -158,13 +191,13 @@ void print_library_music(int *cursor, int page_size) {
     int size = music_list->size;
 
     if(size == 0) {
-		print_center_string("提示:当前路径下, 没有发现歌曲 :)\n");
+        print_center_string("提示:当前路径下, 没有发现歌曲 :)\n");
         return;
     }
 
-	if(*cursor >= size)
-		*cursor = 0;
-	else if(*cursor < 0)
+    if(*cursor >= size)
+        *cursor = 0;
+    else if(*cursor < 0)
         *cursor = size - 1;
 
     _cursor = *cursor;
@@ -181,11 +214,20 @@ void print_library_music(int *cursor, int page_size) {
 
     void* item;
 
+    char music_item[2048];
+
     arraylist_iterate(music_slice, index, item) {
-        if ((i + index) == _cursor)
-            fprintf(stdout, "\t\t\t\t->%d.%s\n", i + index , ((music_file*)item)->filename);
-        else
-            fprintf(stdout, "\t\t\t\t  %d.%s\n", i + index , ((music_file*)item)->filename);
+
+        set_cursor_point(columns / 2 - 40, rows / 2 - 10 + index);
+
+        if ((i + index) == _cursor) {
+            snprintf(music_item, sizeof(music_item), "\t\t\t\t->%d.%s\n", i + index , ((music_file*)item)->filename);
+            textcolor(music_item, TEXT_DARKGREEN);
+        }
+        else {
+            snprintf(music_item, sizeof(music_item), "\t\t\t\t  %d.%s\n", i + index , ((music_file*)item)->filename);
+            fprintf(stdout, "%s", music_item);
+        }
     }
 
     arraylist_destroy(music_slice);

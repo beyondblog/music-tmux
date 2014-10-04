@@ -20,5 +20,10 @@
 #define CONFIG_H
 
 #define CONFIG_FILE ".music_tmux.conf"
+#define KEYUP    0
+#define KEYDOWN  1
+#define KEYLEFT  2
+#define KEYRIGHT 3
+#define KEYQUIT  4
 
 #endif

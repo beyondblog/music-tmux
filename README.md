@@ -26,6 +26,6 @@ make
 
 ## Config file
 
-music_tmux.conf
+~/.music_tmux.conf
 
 
