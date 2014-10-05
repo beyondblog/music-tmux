@@ -41,6 +41,7 @@
 
 
 
+static void load_config(char *config);
 static char *fullprogname = NULL; /* Copy of argv[0]. */
 static char *prgName = NULL;
 static char *binpath; /* Path to myself. */
@@ -81,7 +82,7 @@ void safe_exit(int code)
 }
 
 void reload_library() {
-
+    load_config(CONFIG_FILE);
     load_library_music(music_library);
 }
 
@@ -153,6 +154,9 @@ static void load_config(char *config)
         config_destroy(conf);
         return;
     }
+	if(music_library != NULL)
+		free(music_library);
+
     music_library = NULL;
     if(!config_read_file(conf, filepath) == CONFIG_FALSE)
     {
@@ -160,17 +164,19 @@ static void load_config(char *config)
         int key_up, key_down, key_left, key_right;
         rt = config_lookup_string(conf, "version", &version);
         config_setting_t* array = config_setting_get_member(conf->root, "library");
-        int count = config_setting_length(array);
-        if(count > 0) {
-            library = config_setting_get_string_elem(array, 0);
-            if(library != NULL && library[0] == '~' && strlen(library) > 0)
-            {
-                //解析用户路径
-                int len = sizeof(char) * (strlen(pw->pw_dir) + strlen(library));
-                music_library = (char *) malloc(len);
-                snprintf(music_library, len, "%s%s", pw->pw_dir, &library[1]);
-            } else {
-                music_library = strdup(library);
+        if(array != NULL) {
+            int count = config_setting_length(array);
+            if(count > 0) {
+                library = config_setting_get_string_elem(array, 0);
+                if(library != NULL && library[0] == '~' && strlen(library) > 0)
+                {
+                    //解析用户路径
+                    int len = sizeof(char) * (strlen(pw->pw_dir) + strlen(library));
+                    music_library = (char *) malloc(len);
+                    snprintf(music_library, len, "%s%s", pw->pw_dir, &library[1]);
+                } else {
+                    music_library = strdup(library);
+                }
             }
         }
 

@@ -98,7 +98,10 @@ int show_menu(char userKey)
         key = KEYRIGHT;
     else if(userKey == 'q')
         key = KEYQUIT;
-
+    else if(userKey == '[')
+        key = VOLUME_ADD;
+    else if(userKey == ']')
+        key = VOLUME_DECRE;
     size = sizeof(base_menu) / sizeof(base_menu[0]);
     cls();
 
@@ -144,7 +147,7 @@ int show_menu(char userKey)
             } else if (cursor == 0) {
                 //reload library
                 reload_library();
-				print_center_string("音乐库已经重新加载!");
+                print_center_string("音乐库已经重新加载!");
             }
         }
         default:
@@ -159,6 +162,14 @@ int show_menu(char userKey)
     }
     case KEYQUIT: {
         return 1;
+        break;
+    }
+    case VOLUME_ADD: {
+        add_play_volume();
+        break;
+    }
+    case VOLUME_DECRE: {
+        decre_play_volume();
         break;
     }
     default:
@@ -240,7 +251,7 @@ static void show_setting_menu()
     int col = window_size.ws_col;
     int i = 0;
     char help_array[][50] = {
-        "重新扫描歌曲",
+        "重新加载配置",
         "歌曲路径设置",
     };
     char setting_item[50];

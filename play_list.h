@@ -49,6 +49,10 @@ void free_play_list();
 
 void play_music_file(music_file *file);
 
+void add_play_volume();
+
+void decre_play_volume();
+
 music_file* get_index_music_path(int index);
 
 music_file* get_current_music();

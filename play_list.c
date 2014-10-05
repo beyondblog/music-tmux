@@ -6,13 +6,13 @@
 #include "play_list.h"
 #include "common.h"
 #include "menu.h"
-
 #define BITS 8
 
 
 //TAILQ_HEAD(, _music_file) music_queue;
 static arraylist* music_list;
 static mpg123_handle *mpg_handle = NULL;
+static double volume;
 static pthread_t tid;
 static pthread_mutex_t mutex;
 static music_file* current_music;
@@ -116,6 +116,7 @@ int init_play_list()
     mpg123_param(mpg_handle, MPG123_RESYNC_LIMIT, -1, 0);
     music_list = arraylist_create();
     pthread_mutex_init(&mutex, NULL);
+    volume = 1.0;
     //TAILQ_INIT(&music_queue);
     return 0;
 }
@@ -298,6 +299,18 @@ static void *thread_play_file(void *file)
     pthread_mutex_unlock(&mutex);
 }
 
+void add_play_volume() {
+    if(volume >= 2)
+        return;
+    volume += 0.1;
+    mpg123_volume(mpg_handle, volume);
+}
+void decre_play_volume() {
+    if(volume <= 0)
+        return;
+    volume -= 0.1;
+    mpg123_volume(mpg_handle, volume);
+}
 
 static void free_music_file(music_file *item)
 {

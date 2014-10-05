@@ -25,5 +25,7 @@
 #define KEYLEFT  2
 #define KEYRIGHT 3
 #define KEYQUIT  4
+#define VOLUME_ADD 5
+#define VOLUME_DECRE 6
 
 #endif
