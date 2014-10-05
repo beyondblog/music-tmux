@@ -154,13 +154,13 @@ static void load_config(char *config)
         config_destroy(conf);
         return;
     }
-	if(music_library != NULL)
-		free(music_library);
+    if(music_library != NULL)
+        free(music_library);
 
     music_library = NULL;
     if(!config_read_file(conf, filepath) == CONFIG_FALSE)
     {
-        char *library = NULL, *version = NULL, *key = NULL;
+        const char *library = NULL, *version = NULL, *key = NULL;
         int key_up, key_down, key_left, key_right;
         rt = config_lookup_string(conf, "version", &version);
         config_setting_t* array = config_setting_get_member(conf->root, "library");
@@ -229,6 +229,8 @@ int main(int sys_argc, char ** sys_argv)
         binpath = NULL; /* No path at all. */
     }
 
+    
+
     init_daemon();
     atexit(exit_callback);
 
@@ -239,15 +241,16 @@ int main(int sys_argc, char ** sys_argv)
     load_library_music(music_library);
     init_menu();
     char key;
-    show_menu(NULL);
+	show_menu(0);
+
+	if(sys_argc > 1 && strncmp(sys_argv[1], "--help",strlen(sys_argv[1])) == 0) {
+		;			
+    }
+
     while((key = getch())) {
         if(show_menu(key) == 1)
             safe_exit(1);
     }
-    //music_file *item = NULL;
-    //item = get_first_music();
-    //play_music_file(item->path);
-    //读取路径下所有音频文件信息
     safe_exit(1);
     return 0;
 }

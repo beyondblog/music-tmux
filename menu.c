@@ -183,16 +183,23 @@ int show_menu(char userKey)
         else if(cursor < 0)
             cursor = size - 1;
 
+        set_cursor_point(col / 2 - 10, (row / 2) - size - 5);
+
+        int color = rand() % 7 + 1;
+		char c[1024];
+		get_color(c,color);
+        textcolor("♪♪ｖ(⌒ｏ⌒)ｖ♪♪イエーイ", c);
+
         char menu_item[1024];
         for(i = 0 ; i < size; i++) {
             if(i == cursor) {
                 snprintf(menu_item, sizeof(menu_item), "->%d.%s\n", i + 1, base_menu[i]);
-                set_cursor_point(col / 2 - 6, (row / 3) + i);
+                set_cursor_point(col / 2 - 6, (row / 2) - size + i);
                 textcolor(menu_item, TEXT_DARKGREEN);
             }
             else {
                 snprintf(menu_item, sizeof(menu_item), "  %d.%s\n", i + 1, base_menu[i]);
-                set_cursor_point(col / 2 - 6, (row / 3) + i);
+                set_cursor_point(col / 2 - 6, (row / 2) - size + i);
                 fprintf(stdout, "%s", menu_item);
             }
         }
@@ -230,11 +237,6 @@ int show_menu(char userKey)
     }
 
     return 0;
-}
-
-void add_menu_item(char *menu_name)
-{
-
 }
 
 void print_center_string(char *str)
@@ -313,6 +315,8 @@ static void show_help_info()
         "github: https://github.com/beyondblog",
         "blog: https://beyondblog.github.io",
         "source: https://github.com/beyondblog/music-tmux",
+        "\n\n",
+        "                                      2014年10月",
     };
 
     int len = dim(help_array);

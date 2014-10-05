@@ -19,91 +19,90 @@ static music_file* current_music;
 /*
  * 显示当前播放的歌曲
  */
-static void show_play_music(char *music_name);
 static void *thread_play_file(void *file);
 static int current_done;
 
-/* Helper for v1 printing, get these strings their zero byte. */
-static void safe_print(char* name, char *data, size_t size)
-{
-    char safe[31];
-    if(size > 30) return;
-
-    memcpy(safe, data, size);
-    safe[size] = 0;
-    printf("%s: %s\n", name, safe);
-}
-
-
-/* Split up a number of lines separated by \n, \r, both or just zero byte
-   and print out each line with specified prefix. */
-static void print_lines(const char* prefix, mpg123_string *inlines)
-{
-    size_t i;
-    int hadcr = 0, hadlf = 0;
-    char *lines = NULL;
-    char *line  = NULL;
-    size_t len = 0;
-
-    if(inlines != NULL && inlines->fill)
-    {
-        lines = inlines->p;
-        len   = inlines->fill;
-    }
-    else return;
-
-    line = lines;
-    for(i = 0; i < len; ++i)
-    {
-        if(lines[i] == '\n' || lines[i] == '\r' || lines[i] == 0)
-        {
-            char save = lines[i]; /* saving, changing, restoring a byte in the data */
-            if(save == '\n') ++hadlf;
-            if(save == '\r') ++hadcr;
-            if((hadcr || hadlf) && hadlf % 2 == 0 && hadcr % 2 == 0) line = "";
-
-            if(line)
-            {
-                lines[i] = 0;
-                printf("%s%s\n", prefix, line);
-                line = NULL;
-                lines[i] = save;
-            }
-        }
-        else
-        {
-            hadlf = hadcr = 0;
-            if(line == NULL) line = lines + i;
-        }
-    }
-}
-
-
-
-
-/* Print out ID3v1 info. */
-static void print_v1(mpg123_id3v1 *v1)
-{
-    safe_print("Title",   v1->title,   sizeof(v1->title));
-    safe_print("Artist",  v1->artist,  sizeof(v1->artist));
-    safe_print("Album",   v1->album,   sizeof(v1->album));
-    safe_print("Year",    v1->year,    sizeof(v1->year));
-    safe_print("Comment", v1->comment, sizeof(v1->comment));
-    printf("Genre: %i", v1->genre);
-}
-
-
-/* Print out the named ID3v2  fields. */
-static void print_v2(mpg123_id3v2 *v2)
-{
-    print_lines("Title: ",   v2->title);
-    print_lines("Artist: ",  v2->artist);
-    print_lines("Album: ",   v2->album);
-    print_lines("Year: ",    v2->year);
-    print_lines("Comment: ", v2->comment);
-    print_lines("Genre: ",   v2->genre);
-}
-
+///* Helper for v1 printing, get these strings their zero byte. */
+//static void safe_print(char* name, char *data, size_t size)
+//{
+//    char safe[31];
+//    if(size > 30) return;
+//
+//    memcpy(safe, data, size);
+//    safe[size] = 0;
+//    printf("%s: %s\n", name, safe);
+//}
+//
+//
+///* Split up a number of lines separated by \n, \r, both or just zero byte
+//   and print out each line with specified prefix. */
+//static void print_lines(const char* prefix, mpg123_string *inlines)
+//{
+//    size_t i;
+//    int hadcr = 0, hadlf = 0;
+//    char *lines = NULL;
+//    char *line  = NULL;
+//    size_t len = 0;
+//
+//    if(inlines != NULL && inlines->fill)
+//    {
+//        lines = inlines->p;
+//        len   = inlines->fill;
+//    }
+//    else return;
+//
+//    line = lines;
+//    for(i = 0; i < len; ++i)
+//    {
+//        if(lines[i] == '\n' || lines[i] == '\r' || lines[i] == 0)
+//        {
+//            char save = lines[i]; /* saving, changing, restoring a byte in the data */
+//            if(save == '\n') ++hadlf;
+//            if(save == '\r') ++hadcr;
+//            if((hadcr || hadlf) && hadlf % 2 == 0 && hadcr % 2 == 0) line = "";
+//
+//            if(line)
+//            {
+//                lines[i] = 0;
+//                printf("%s%s\n", prefix, line);
+//                line = NULL;
+//                lines[i] = save;
+//            }
+//        }
+//        else
+//        {
+//            hadlf = hadcr = 0;
+//            if(line == NULL) line = lines + i;
+//        }
+//    }
+//}
+//
+//
+//
+//
+///* Print out ID3v1 info. */
+//static void print_v1(mpg123_id3v1 *v1)
+//{
+//    safe_print("Title",   v1->title,   sizeof(v1->title));
+//    safe_print("Artist",  v1->artist,  sizeof(v1->artist));
+//    safe_print("Album",   v1->album,   sizeof(v1->album));
+//    safe_print("Year",    v1->year,    sizeof(v1->year));
+//    safe_print("Comment", v1->comment, sizeof(v1->comment));
+//    printf("Genre: %i", v1->genre);
+//}
+//
+//
+///* Print out the named ID3v2  fields. */
+//static void print_v2(mpg123_id3v2 *v2)
+//{
+//    print_lines("Title: ",   v2->title);
+//    print_lines("Artist: ",  v2->artist);
+//    print_lines("Album: ",   v2->album);
+//    print_lines("Year: ",    v2->year);
+//    print_lines("Comment: ", v2->comment);
+//    print_lines("Genre: ",   v2->genre);
+//}
+//
 
 /*
  * 初始化播放列表
@@ -185,7 +184,8 @@ music_file* get_index_music_path(int index)
  * show muisc list
  */
 void print_library_music(int *cursor, int page_size, int columns, int rows) {
-    int i = 0, index = 0, count = 0, _cursor = 0;
+    int i = 0, _cursor = 0;
+    unsigned int index = 0;
     for (i = 0 ; i < 5; i++)
         fprintf(stdout, "\n");
 
@@ -221,7 +221,7 @@ void print_library_music(int *cursor, int page_size, int columns, int rows) {
 
         set_cursor_point(columns / 2 - 40, rows / 2 - 10 + index);
 
-        if ((i + index) == _cursor) {
+        if ((int)(i + index) == _cursor) {
             snprintf(music_item, sizeof(music_item), "\t\t\t\t->%d.%s\n", i + index , ((music_file*)item)->filename);
             textcolor(music_item, TEXT_DARKGREEN);
         }
@@ -243,7 +243,6 @@ void play_music_file(music_file *file)
         printf("Create thread error!\n");
         exit(1);
     }
-
 }
 
 static void *thread_play_file(void *file)
@@ -297,6 +296,7 @@ static void *thread_play_file(void *file)
     ao_close(dev);
     mpg123_close(mpg_handle);
     pthread_mutex_unlock(&mutex);
+    return (void *)0;
 }
 
 void add_play_volume() {
@@ -321,11 +321,6 @@ static void free_music_file(music_file *item)
     }
 }
 
-static void show_play_music(char *music_name)
-{
-    fprintf(stdout, "当前播放:%s", music_name);
-}
-
 music_file* get_current_music()
 {
 
@@ -335,7 +330,7 @@ music_file* get_current_music()
 
 void free_play_list()
 {
-    int i;
+    unsigned int i = 0;
     void* item;
     arraylist_iterate(music_list, i, item) {
         free_music_file((music_file*) item);

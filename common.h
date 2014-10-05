@@ -19,7 +19,7 @@
 #define TEXT_WHITE     "\033[37m"
 
 #define COLOR_RESET   "\033[0m"
-#define CURSOR_HIDE   "\33[?25l" 
+#define CURSOR_HIDE   "\33[?25l"
 #define CURSOR_SHOW   "\33[?25h"
 #define CURSOR_SAVE   "\33[s"
 #define CURSOR_LOAD   "\33[u"
@@ -36,6 +36,7 @@
 
 
 #define dim(arr) (sizeof(arr)/sizeof(arr[0]))
+#define get_color(color,n) (snprintf(color,sizeof(color),"\033[3%dm",n))
 
 
 int str_ends_with(const char * str, const char * suffix);
