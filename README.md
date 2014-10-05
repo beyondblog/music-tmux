@@ -9,20 +9,29 @@ Music player in terminal
 For linux or MacOS
 
 ```
-yum install libmpg libao libconfig
+% yum install libmpg libao libconfig
 
 or
 
-apt-get install libmpg libao libconfig
+% apt-get install libmpg libao libconfig
 
 MacOS 
 
-brew install mpg libao libconfig
+% brew install mpg libao libconfig
 
-make
+% make
+
+% make install
 
 ```
 
+## Run
+
+```
+
+% music_tmux
+
+```
 
 ## Config file
 
