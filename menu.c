@@ -316,7 +316,7 @@ static void show_help_info()
         "blog: https://beyondblog.github.io",
         "source: https://github.com/beyondblog/music-tmux",
         "\n\n",
-        "                                      2014年10月",
+        "                                    2014年10月\n",
     };
 
     int len = dim(help_array);

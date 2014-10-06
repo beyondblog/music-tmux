@@ -1,5 +1,5 @@
-CC = gcc  -O2
-#CC = gcc -g
+#CC = gcc  -O2
+CC = gcc -g
 CFLAGS = -W -Wall
 
 OBJECTS = music_tmux.o common.o play_list.o menu.o arraylist.o

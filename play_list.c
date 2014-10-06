@@ -131,7 +131,6 @@ int load_library_music(char *library) {
     char filename[1024] = {0};
     if(library == NULL)
         return 0;
-    arraylist_clear(music_list);
     d = opendir(library);
     if(d) {
         while((dir = readdir(d)) != NULL)
@@ -143,13 +142,18 @@ int load_library_music(char *library) {
             stat(filename, &st);
             if(S_ISDIR(st.st_mode)) {
                 load_library_music(filename);
-            } else if(str_ends_with(dir->d_name, "mp3") > 0 || str_ends_with(dir->d_name, "flac") > 0) {
+            } else if(str_ends_with(dir->d_name, "mp3") > 0) {
                 add_music_to_play_list(dir->d_name, filename);
             }
         }
         closedir(d);
     }
     return 0;
+}
+
+
+void clear_play_list() {
+	arraylist_clear(music_list);
 }
 
 int add_music_to_play_list(char *filename, char *path)

@@ -17,7 +17,7 @@ or
 
 MacOS 
 
-% brew install libmpg libao libconfig
+% brew install mpg123 libao libconfig
 
 % make
 

@@ -39,6 +39,8 @@ int init_play_list();
 
 int load_library_music(char *library);
 
+void clear_play_list();
+
 int add_music_to_play_list(char *filename, char *path);
 
 music_file* get_first_music();
